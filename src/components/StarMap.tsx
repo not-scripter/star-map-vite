@@ -105,7 +105,9 @@ export default function StarMap({ stars }: StarMapProps) {
               <mesh position={position} onClick={() => alert(star.name)}>
                 <sphereGeometry args={[size, 16, 16]} />
                 <meshBasicMaterial color={color} />
-                <Text>{star.name}</Text>
+                <Billboard>
+                  <Text>{star.name}</Text>
+                </Billboard>
               </mesh>
             </group>
           );
