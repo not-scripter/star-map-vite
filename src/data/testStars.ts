@@ -1,4 +1,4 @@
-type T = "Oc" | "Ga" | "Ne" | "Gc" | "P" | "Ca" | "S" | "U";
+export type T = "Oc" | "Ga" | "Ne" | "Gc" | "P" | "Ca" | "S" | "U";
 export interface Star {
   DE: number;
   RA: number;

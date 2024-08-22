@@ -7,7 +7,7 @@ import {
 import { Canvas } from "@react-three/fiber";
 import React, { useState } from "react";
 import * as THREE from "three";
-import { Star } from "../data/testStars";
+import { Star, T } from "../data/testStars";
 
 interface StarMapProps {
   stars: Star[];
@@ -16,7 +16,6 @@ interface StarMapProps {
 export default function StarMap({ stars }: StarMapProps) {
   const [scale, setscale] = useState<number>(1);
 
-  // Convert RA/Dec to XYZ coordinates
   const raDecToXYZ = (star: Star) => {
     const raRad = (star.RA / 180) * Math.PI;
     const decRad = (star.DE / 180) * Math.PI;
@@ -101,15 +100,17 @@ export default function StarMap({ stars }: StarMapProps) {
           const { position, size, color } = raDecToXYZ(star);
 
           return (
-            <group key={index}>
-              <mesh position={position} onClick={() => alert(star.name)}>
-                <sphereGeometry args={[size, 16, 16]} />
-                <meshBasicMaterial color={color} />
-                <Billboard>
-                  <Text>{star.name}</Text>
-                </Billboard>
-              </mesh>
-            </group>
+            <mesh
+              key={index}
+              position={position}
+              onClick={() => alert(star.name)}
+            >
+              <sphereGeometry args={[size, 16, 16]} />
+              <meshBasicMaterial color={color} />
+              <Billboard>
+                <Text anchorY={0.5}>{star.name}</Text>
+              </Billboard>
+            </mesh>
           );
         })}
       </Canvas>
