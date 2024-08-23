@@ -3,8 +3,10 @@ import {
   OrbitControls,
   PerspectiveCamera,
   Text,
+  Environment,
+  useGLTF,
 } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useLoader } from "@react-three/fiber";
 import React, { useState } from "react";
 import * as THREE from "three";
 import { Star, T } from "../data/testStars";
@@ -12,6 +14,8 @@ import { Star, T } from "../data/testStars";
 interface StarMapProps {
   stars: Star[];
 }
+
+const geometry = new THREE.SphereGeometry(1, 16, 16);
 
 export default function StarMap({ stars }: StarMapProps) {
   const [scale, setscale] = useState<number>(1);
@@ -21,14 +25,6 @@ export default function StarMap({ stars }: StarMapProps) {
     const decRad = (star.DE / 180) * Math.PI;
 
     const distance = Math.max(1, 30 + (star.AM - 0.4) * 10);
-    // const baseDistance = 50;
-    // const distance = baseDistance + star.AM * 10;
-    //     // const distance = 50 + Math.log(1 + star.AM) * 20;
-    //     const minAM = Math.min(...stars.map(s => s.AM));
-    // const maxAM = Math.max(...stars.map(s => s.AM));
-    //
-    // const normalizedAM = (star.AM - minAM) / (maxAM - minAM);
-    // const distance = 30 + normalizedAM * 50;
 
     const x = distance * Math.cos(decRad) * Math.cos(raRad);
     const y = distance * Math.cos(decRad) * Math.sin(raRad);
@@ -38,34 +34,45 @@ export default function StarMap({ stars }: StarMapProps) {
 
     const minSize = 0.05;
     const maxSize = 0.5;
-    const size = maxSize - star.AM * 0.1;
+    const size = maxSize - star.AM * minSize;
 
     const t = star.t;
     const color =
       t === "Oc"
-        ? "#f00"
+        ? "#ff0000"
         : t === "Ca"
-          ? "#f0f"
-          : t === "Gc"
-            ? "#ff0"
-            : t === "Ne"
-              ? "#0ff"
-              : t === "Ga"
-                ? "#0f0"
-                : t === "P"
-                  ? "#00f"
-                  : t === "S"
-                    ? "#0bbbb0"
-                    : t === "U"
-                      ? "#eee0e0"
-                      : "#ffffff";
+        ? "#ff00ff"
+        : t === "Gc"
+        ? "#ffff00"
+        : t === "Ne"
+        ? "#00ffff"
+        : t === "Ga"
+        ? "#00ff00"
+        : t === "P"
+        ? "#0000ff"
+        : t === "S"
+        ? "#0bbbb0"
+        : t === "U"
+        ? "#eee0e0"
+        : "#ffffff";
 
-    return { position, size, color };
+    const maxOpacity = 1;
+    const minOpacity = 0.1;
+    const opasity = maxOpacity - star.AM * minOpacity;
+
+    const minScale = 0.1;
+    const maxScale = 2.0;
+    const scale = maxScale - star.AM * minScale;
+
+    return { position, size, color, scale, opasity };
   };
 
   return (
     <div
       style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
         backgroundColor: "gray",
         width: "100vw",
         height: "100vh",
@@ -75,16 +82,13 @@ export default function StarMap({ stars }: StarMapProps) {
         <ambientLight intensity={1} />
         <pointLight position={[10, 10, 10]} />
 
-        <mesh>
-          <sphereGeometry args={[10, 32, 32]} />
-          <meshBasicMaterial color="#000080" wireframe={true} />
-        </mesh>
+        {/* <Environment preset="sunset" background /> */}
 
         <OrbitControls
           makeDefault
           enableZoom={true}
           zoomSpeed={1}
-          minDistance={50}
+          minDistance={1}
           maxDistance={200}
         />
 
@@ -97,20 +101,26 @@ export default function StarMap({ stars }: StarMapProps) {
         />
 
         {stars.map((star, index) => {
-          const { position, size, color } = raDecToXYZ(star);
+          const { position, size, color, scale, opasity } = raDecToXYZ(star);
 
           return (
-            <mesh
-              key={index}
-              position={position}
-              onClick={() => alert(star.name)}
-            >
-              <sphereGeometry args={[size, 16, 16]} />
-              <meshBasicMaterial color={color} />
+            <group position={position} key={index}>
+              <mesh
+                geometry={geometry}
+                scale={scale}
+                onClick={() => alert(size)}
+              >
+                {/* <sphereGeometry args={[size, 16, 16]} /> */}
+                <meshBasicMaterial
+                  color={color}
+                  transparent
+                  opacity={opasity}
+                />
+              </mesh>
               <Billboard>
                 <Text anchorY={0.5}>{star.name}</Text>
               </Billboard>
-            </mesh>
+            </group>
           );
         })}
       </Canvas>
