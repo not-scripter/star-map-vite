@@ -56,15 +56,22 @@ export default function StarMap({ stars }: StarMapProps) {
         ? "#eee0e0"
         : "#ffffff";
 
-    const maxOpacity = 1;
-    const minOpacity = 0.1;
-    const opasity = maxOpacity - star.AM * minOpacity;
+    // const maxOpacity = 1;
+    // const minOpacity = 0.1;
+    // const opacity = maxOpacity - star.AM * minOpacity;
+    const minOpacity = 0.2;
+    const maxOpacity = 1.0;
+    const opacityPow = maxOpacity * Math.pow(0.8, star.AM);
+    const opacity = Math.max(minOpacity, Math.min(maxOpacity, opacityPow));
 
-    const minScale = 0.1;
-    const maxScale = 2.0;
-    const scale = maxScale - star.AM * minScale;
+    // const minScale = 0.1;
+    // const maxScale = 1;
+    // const scale = maxScale - star.AM * minScale;
+    const baseScale = 0.2;
+    const scaleFactor = 1.5;
+    const scale = baseScale * Math.pow(scaleFactor, -star.AM);
 
-    return { position, size, color, scale, opasity };
+    return { position, size, color, scale, opacity };
   };
 
   return (
@@ -88,33 +95,33 @@ export default function StarMap({ stars }: StarMapProps) {
           makeDefault
           enableZoom={true}
           zoomSpeed={1}
-          minDistance={1}
-          maxDistance={200}
+          minDistance={0.1}
+          maxDistance={100}
         />
 
         <PerspectiveCamera
           makeDefault
-          position={[0, 0, 50]}
-          fov={75}
+          position={[0, 0, 0]}
+          fov={100}
           near={0.1}
           far={1000}
         />
 
         {stars.map((star, index) => {
-          const { position, size, color, scale, opasity } = raDecToXYZ(star);
+          const { position, size, color, scale, opacity } = raDecToXYZ(star);
 
           return (
             <group position={position} key={index}>
               <mesh
                 geometry={geometry}
                 scale={scale}
-                onClick={() => alert(size)}
+                onClick={() => alert(scale)}
               >
                 {/* <sphereGeometry args={[size, 16, 16]} /> */}
                 <meshBasicMaterial
                   color={color}
                   transparent
-                  opacity={opasity}
+                  opacity={opacity}
                 />
               </mesh>
               <Billboard>
