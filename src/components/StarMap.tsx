@@ -10,6 +10,8 @@ import { Canvas, useLoader } from "@react-three/fiber";
 import React, { useState } from "react";
 import * as THREE from "three";
 import { Star, T } from "../data/testStars";
+import JulianDate from "../data/julian-date";
+import vsop from "../data/vsop87a_xsmall";
 
 interface StarMapProps {
   stars: Star[];
@@ -17,9 +19,41 @@ interface StarMapProps {
 
 const geometry = new THREE.SphereGeometry(1, 16, 16);
 
-export default function StarMap({ stars }: StarMapProps) {
-  const [scale, setscale] = useState<number>(1);
+const date = new Date();
+const jd = JulianDate.gregorianDateToJulianDate(
+  date.getFullYear(),
+  date.getMonth() + 1,
+  date.getDate(),
+  date.getHours(),
+  date.getMinutes(),
+  date.getSeconds()
+);
 
+const planetScale = 1000;
+const PLANET_DISTANCE_SCALE = 1;
+
+// Retrieve positions from VSOP87 (assumed to be in AU)
+const marsPosition = vsop.getMars(jd);
+const earthPosition = vsop.getEarth(jd);
+
+// Correct the geocentric position calculation by scaling after subtraction
+const marsGeocentric = [
+  (marsPosition[0] - earthPosition[0]) * planetScale,
+  (marsPosition[1] - earthPosition[1]) * planetScale,
+  (marsPosition[2] - earthPosition[2]) * planetScale,
+];
+
+// Use the geocentric coordinates directly, applying the distance scale factor
+const planetX = marsGeocentric[0] * PLANET_DISTANCE_SCALE;
+const planetY = marsGeocentric[1] * PLANET_DISTANCE_SCALE;
+const planetZ = marsGeocentric[2] * PLANET_DISTANCE_SCALE;
+
+// Directly create the Vector3 position without redundant recalculations
+const planetPosition = new THREE.Vector3(planetX, planetY, planetZ);
+
+alert(planetPosition.x);
+
+export default function StarMap({ stars }: StarMapProps) {
   const raDecToXYZ = (star: Star) => {
     const raRad = (star.RA / 180) * Math.PI;
     const decRad = (star.DE / 180) * Math.PI;
@@ -91,6 +125,10 @@ export default function StarMap({ stars }: StarMapProps) {
 
         {/* <Environment preset="sunset" background /> */}
 
+        <mesh geometry={geometry} position={planetPosition} scale={10}>
+          <meshBasicMaterial color="#ff0000" transparent opacity={1} />
+        </mesh>
+
         <OrbitControls
           makeDefault
           enableZoom={true}
@@ -115,7 +153,7 @@ export default function StarMap({ stars }: StarMapProps) {
               <mesh
                 geometry={geometry}
                 scale={scale}
-                onClick={() => alert(scale)}
+                onClick={() => alert(position.x)}
               >
                 {/* <sphereGeometry args={[size, 16, 16]} /> */}
                 <meshBasicMaterial
